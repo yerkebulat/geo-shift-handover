@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a472a">
+  <meta name="description" content="Offline handover app for exploration drilling geologists">
+  <title>Geo Shift Handover</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icon-512.png">
+  <script type="module" crossorigin src="/assets/index-Bh9HJYtc.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-C6enghzd.css">
+<link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+<body>
+  <div id="app">
+    <!-- Navigation -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="form">New Handover</button>
+      <button class="tab-btn" data-tab="drafts">Drafts</button>
+      <button class="tab-btn" data-tab="swing">This Swing</button>
+    </nav>
+
+    <!-- Form Tab -->
+    <div class="tab-content active" id="form-tab">
+      <div class="container">
+        <header class="app-header">
+          <h1>Geo Shift Handover</h1>
+          <div class="header-actions">
+            <button id="load-sample-btn" class="btn-secondary">Load Sample</button>
+            <button id="nothing-notable-btn" class="btn-secondary">Nothing Notable Mode</button>
+          </div>
+        </header>
+
+        <form id="handover-form" autocomplete="off">
+          <!-- A. Header Section -->
+          <section class="form-section">
+            <h2>Project & Shift Details</h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="project">Project <span class="optional">(optional)</span></label>
+                <input type="text" id="project" placeholder="e.g., Gold Ridge Exploration">
+              </div>
+              <div class="form-group">
+                <label for="holeId">Hole ID <span class="required">*</span></label>
+                <input type="text" id="holeId" required placeholder="e.g., DDH023">
+              </div>
+              <div class="form-group">
+                <label for="drillType">Drill Type <span class="required">*</span></label>
+                <select id="drillType" required>
+                  <option value="DD">Diamond Drilling (DD)</option>
+                  <option value="RC">Reverse Circulation (RC)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="shift">Shift <span class="required">*</span></label>
+                <select id="shift" required>
+                  <option value="Day">Day</option>
+                  <option value="Night">Night</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="date">Date <span class="required">*</span></label>
+                <input type="date" id="date" required>
+              </div>
+              <div class="form-group">
+                <label for="geologist">Geologist Name <span class="required">*</span></label>
+                <input type="text" id="geologist" required placeholder="Your name">
+              </div>
+              <div class="form-group">
+                <label for="rigContractor">Rig / Contractor <span class="optional">(optional)</span></label>
+                <input type="text" id="rigContractor" placeholder="e.g., ABC Drilling">
+              </div>
+            </div>
+          </section>
+
+          <!-- B. Swing / Rotation Section -->
+          <section class="form-section">
+            <h2>Swing / Rotation</h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="swingStartDate">Swing Start Date <span class="required">*</span></label>
+                <input type="date" id="swingStartDate" required>
+              </div>
+              <div class="form-group">
+                <label for="swingLength">Swing Length (days) <span class="required">*</span></label>
+                <input type="number" id="swingLength" required min="1" max="60" value="17">
+              </div>
+              <div class="form-group">
+                <label>Swing Day</label>
+                <div class="readonly-value" id="swingDayDisplay">-</div>
+              </div>
+              <div class="form-group">
+                <label>Next Changeover</label>
+                <div class="readonly-value" id="nextChangeoverDisplay">-</div>
+              </div>
+              <div class="form-group">
+                <label for="outgoingGeologist">Outgoing Geologist <span class="optional">(optional)</span></label>
+                <input type="text" id="outgoingGeologist" placeholder="Name">
+              </div>
+              <div class="form-group">
+                <label for="incomingGeologist">Incoming Geologist <span class="optional">(optional)</span></label>
+                <input type="text" id="incomingGeologist" placeholder="Name">
+              </div>
+            </div>
+          </section>
+
+          <!-- C. Depths Section -->
+          <section class="form-section">
+            <h2>Depths & Progress</h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="startDepth">Start Depth (m) <span class="required">*</span></label>
+                <input type="number" id="startDepth" required step="0.1" placeholder="e.g., 125.5">
+              </div>
+              <div class="form-group">
+                <label for="endDepth">End Depth (m) <span class="required">*</span></label>
+                <input type="number" id="endDepth" required step="0.1" placeholder="e.g., 142.6">
+              </div>
+              <div class="form-group">
+                <label for="currentBitDepth">Current Bit Depth (m) <span class="optional">(optional)</span></label>
+                <input type="number" id="currentBitDepth" step="0.1" placeholder="e.g., 145.2">
+              </div>
+              <div class="form-group full-width">
+                <label for="progressNotes">Progress Notes <span class="optional">(optional)</span></label>
+                <input type="text" id="progressNotes" placeholder="e.g., Good advance, 17m drilled this shift" maxlength="1200">
+              </div>
+            </div>
+          </section>
+
+          <!-- D. Ground Conditions Section -->
+          <section class="form-section">
+            <h2>Ground Conditions <span class="required">*</span></h2>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="groundCondition">Condition <span class="required">*</span></label>
+                <select id="groundCondition" required>
+                  <option value="">Select condition</option>
+                  <option value="Competent">Competent</option>
+                  <option value="Moderately broken">Moderately broken</option>
+                  <option value="Highly broken">Highly broken</option>
+                  <option value="Unstable-washing">Unstable / Washing</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="intervalFrom">Interval From (m) <span class="optional">(optional)</span></label>
+                <input type="number" id="intervalFrom" step="0.1" placeholder="e.g., 130.0">
+              </div>
+              <div class="form-group">
+                <label for="intervalTo">Interval To (m) <span class="optional">(optional)</span></label>
+                <input type="number" id="intervalTo" step="0.1" placeholder="e.g., 142.6">
+              </div>
+              <div class="form-group">
+                <label for="recoveryConcern">Recovery Concern?</label>
+                <select id="recoveryConcern">
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label for="groundNotes">Condition Notes <span class="optional">(optional)</span></label>
+                <input type="text" id="groundNotes" placeholder="Additional notes on ground conditions" maxlength="1200">
+              </div>
+            </div>
+          </section>
+
+          <!-- E. Geological Observations Section -->
+          <section class="form-section">
+            <h2>Geological Observations <span class="optional">(optional)</span></h2>
+            <div class="toggle-sections">
+              <div class="toggle-group">
+                <label class="toggle-header">
+                  <input type="checkbox" id="toggleLithology" class="toggle-checkbox">
+                  <span>Lithology Change</span>
+                </label>
+                <div class="toggle-content" id="lithologyContent">
+                  <textarea id="lithologyChange" rows="2" maxlength="2400" placeholder="Describe lithology changes observed"></textarea>
+                </div>
+              </div>
+              <div class="toggle-group">
+                <label class="toggle-header">
+                  <input type="checkbox" id="toggleAlteration" class="toggle-checkbox">
+                  <span>Alteration Change</span>
+                </label>
+                <div class="toggle-content" id="alterationContent">
+                  <textarea id="alterationChange" rows="2" maxlength="2400" placeholder="Describe alteration changes observed"></textarea>
+                </div>
+              </div>
+              <div class="toggle-group">
+                <label class="toggle-header">
+                  <input type="checkbox" id="toggleMineralization" class="toggle-checkbox">
+                  <span>Mineralization Observed</span>
+                </label>
+                <div class="toggle-content" id="mineralizationContent">
+                  <textarea id="mineralizationObserved" rows="2" maxlength="2400" placeholder="Describe mineralization observed"></textarea>
+                </div>
+              </div>
+              <div class="toggle-group">
+                <label class="toggle-header">
+                  <input type="checkbox" id="toggleStructure" class="toggle-checkbox">
+                  <span>Structure / Faulting</span>
+                </label>
+                <div class="toggle-content" id="structureContent">
+                  <textarea id="structureFaulting" rows="2" maxlength="2400" placeholder="Describe structural features or faulting"></textarea>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- F. Drilling Issues Section -->
+          <section class="form-section">
+            <h2>Drilling Issues <span class="optional">(optional)</span></h2>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="issuePoorRecovery" class="issue-checkbox">
+                <span>Poor Recovery</span>
+              </label>
+              <div class="issue-note" id="notePoorRecovery">
+                <input type="text" placeholder="Details..." maxlength="1200">
+              </div>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="issueDeviation" class="issue-checkbox">
+                <span>Deviation Increasing</span>
+              </label>
+              <div class="issue-note" id="noteDeviation">
+                <input type="text" placeholder="Details..." maxlength="1200">
+              </div>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="issueSlowPenetration" class="issue-checkbox">
+                <span>Slow Penetration</span>
+              </label>
+              <div class="issue-note" id="noteSlowPenetration">
+                <input type="text" placeholder="Details..." maxlength="1200">
+              </div>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="issueEquipment" class="issue-checkbox">
+                <span>Equipment Issue</span>
+              </label>
+              <div class="issue-note" id="noteEquipment">
+                <input type="text" placeholder="Details..." maxlength="1200">
+              </div>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="issueWaterLoss" class="issue-checkbox">
+                <span>Water Loss / Circulation Issue</span>
+              </label>
+              <div class="issue-note" id="noteWaterLoss">
+                <input type="text" placeholder="Details..." maxlength="1200">
+              </div>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="issueOther" class="issue-checkbox">
+                <span>Other</span>
+              </label>
+              <div class="issue-note" id="noteOther">
+                <input type="text" placeholder="Describe other issue..." maxlength="1200">
+              </div>
+            </div>
+          </section>
+
+          <!-- G. Safety & Risk Section -->
+          <section class="form-section">
+            <h2>Safety & Risk <span class="required">*</span></h2>
+            <div class="safety-group">
+              <div class="safety-item">
+                <label>Ground Stability Concern?</label>
+                <div class="safety-controls">
+                  <select id="safetyGroundStability" class="safety-select">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                  <input type="text" id="safetyGroundStabilityNote" class="safety-note" placeholder="Required if Yes" maxlength="1200">
+                </div>
+              </div>
+              <div class="safety-item">
+                <label>Hole Condition Concern?</label>
+                <div class="safety-controls">
+                  <select id="safetyHoleCondition" class="safety-select">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                  <input type="text" id="safetyHoleConditionNote" class="safety-note" placeholder="Required if Yes" maxlength="1200">
+                </div>
+              </div>
+              <div class="safety-item">
+                <label>Pad Condition Concern?</label>
+                <div class="safety-controls">
+                  <select id="safetyPadCondition" class="safety-select">
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                  <input type="text" id="safetyPadConditionNote" class="safety-note" placeholder="Required if Yes" maxlength="1200">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- H. Instructions Section -->
+          <section class="form-section">
+            <h2>Instructions to Next Shift <span class="required">*</span></h2>
+            <div class="instructions-list">
+              <div class="instruction-item">
+                <label>Instruction 1 <span class="required">*</span></label>
+                <input type="text" id="instruction1" required maxlength="1200" placeholder="First instruction (required)">
+              </div>
+              <div class="instruction-item">
+                <label>Instruction 2 <span class="optional">(optional)</span></label>
+                <input type="text" id="instruction2" maxlength="1200" placeholder="Second instruction">
+              </div>
+              <div class="instruction-item">
+                <label>Instruction 3 <span class="optional">(optional)</span></label>
+                <input type="text" id="instruction3" maxlength="1200" placeholder="Third instruction">
+              </div>
+            </div>
+          </section>
+
+          <!-- I. Photos Section -->
+          <section class="form-section">
+            <h2>Photos <span class="optional">(0-6 photos)</span></h2>
+            <div id="photos-container">
+              <div class="photo-controls">
+                <input type="file" id="photo-input" accept="image/*" multiple style="display: none;">
+                <button type="button" id="add-photo-btn" class="btn-secondary">Add Photos</button>
+                <span class="photo-count">0 / 6</span>
+              </div>
+              <div id="photo-list" class="photo-grid"></div>
+            </div>
+          </section>
+
+          <!-- J. Signature Section -->
+          <section class="form-section">
+            <h2>Signature</h2>
+            <div class="signature-container">
+              <div class="signature-pad-wrapper">
+                <canvas id="signature-pad" width="600" height="200"></canvas>
+                <button type="button" id="clear-signature-btn" class="btn-link">Clear</button>
+              </div>
+              <div class="signature-info">
+                <div class="form-group">
+                  <label for="signedBy">Signed By</label>
+                  <input type="text" id="signedBy" placeholder="Name">
+                </div>
+                <div class="form-group">
+                  <label>Signed At</label>
+                  <div class="readonly-value" id="signatureTimestamp">Not signed yet</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Action Buttons -->
+          <div class="form-actions">
+            <button type="button" id="save-draft-btn" class="btn-secondary">Save Draft</button>
+            <button type="button" id="copy-text-btn" class="btn-secondary">Copy for WhatsApp</button>
+            <button type="submit" id="export-pdf-btn" class="btn-primary">Export PDF</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Drafts Tab -->
+    <div class="tab-content" id="drafts-tab">
+      <div class="container">
+        <header class="app-header">
+          <h1>Saved Drafts</h1>
+        </header>
+        <div id="drafts-list" class="drafts-list">
+          <p class="empty-state">No drafts saved yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- This Swing Tab -->
+    <div class="tab-content" id="swing-tab">
+      <div class="container">
+        <header class="app-header">
+          <h1>This Swing</h1>
+        </header>
+        <div id="swing-info" class="swing-info">
+          <p class="empty-state">No swing data available. Create a handover first.</p>
+        </div>
+        <div id="swing-handovers" class="swing-handovers">
+          <h2>Recent Handovers (Last 7 Days)</h2>
+          <div id="swing-handovers-list" class="drafts-list">
+            <p class="empty-state">No handovers in this swing yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+  </div>
+
+</body>
+</html>
